@@ -2,11 +2,12 @@ import streamlit as st
 import google.generativeai as genai
 import os
 
-os.environ["GEMINI_API_KEY"] = "[YOUR_API_KEY]"
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-pro")
+model = None
 
 st.title("🤖Gemini ChatGPT")
+with st.sidebar:
+    gemini_api_key = st.text_input(type="password", label="Gemini API Key")
+    "[Get an Gemini API key](https://ai.google.dev/gemini-api/docs)"
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
@@ -33,5 +34,14 @@ def invoke_gemini(user_query):
 user_query = st.chat_input("Message Gemini GPT")
 
 if user_query:
+    if not gemini_api_key:
+        st.info("Please add your Gemini API key to continue.")
+        st.stop()
+    else:
+        if not model:
+            os.environ["GEMINI_API_KEY"] = gemini_api_key
+            genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+            model = genai.GenerativeModel("gemini-pro")
+        
     with st.chat_message("user"): st.markdown(user_query)
     invoke_gemini(user_query)
